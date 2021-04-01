@@ -1,0 +1,38 @@
+@import reset
+@import theme
+
+html, body, #root
+  height: 100%
+
+.main
+  height: 100%
+
+  video
+    max-width: 100%
+
+  input
+    width: 15rem
+    font-size: 2rem
+    text-align: center
+
+.recent-number-list
+  display: flex
+  flex-wrap: wrap
+  > div
+    padding: 0.2rem
+    margin: 0.2rem
+    background: #333
+
+nav
+  position: fixed
+  bottom: 0
+  width: 100%
+  display: flex
+  background: #333
+  font-size: 130%
+  a
+    padding: 0.5rem
+    flex: 1
+    text-align: center
+    &.active
+      background-color: $theme-primary

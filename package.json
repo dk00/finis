@@ -1,0 +1,144 @@
+{
+  "name": "template",
+  "version": "0.2.0",
+  "description": "Lean web app template, offline first, with Preact and LiveScript",
+  "scripts": {
+    "start": "webpack serve",
+    "build": "rimraf build && cp -r public build && webpack --mode production",
+    "analysis": "webpack --mode production --profile --json > stats.json",
+    "pretest": "yarn build",
+    "test": "jest --coverage",
+    "test:watch": "jest --clearCache; jest --watch",
+    "deploy": "yarn test && firebase deploy"
+  },
+  "repository": "dk00/template",
+  "license": "Unlicense",
+  "bugs": "https://github.com/dk00/template/issues",
+  "homepage": "https://github.com/dk00/template#readme",
+  "installConfig": {
+    "pnp": true
+  },
+  "private": true,
+  "dependencies": {
+    "idb": "^6.0.0",
+    "preact": "^10.5.13",
+    "swr": "^0.5.5",
+    "taiwan-invoice": "^0.0.1",
+    "wouter-preact": "^2.7.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.14",
+    "@babel/eslint-parser": "^7.13.14",
+    "@babel/preset-react": "^7.13.13",
+    "@babel/runtime": "^7.13.10",
+    "babel-jest": "^26.6.3",
+    "babel-loader": "^8.2.2",
+    "babel-plugin-livescript": "^0.0.3",
+    "css-loader": "^5.2.0",
+    "eslint": "^7.23.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.23.1",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "html-webpack-plugin": "^5.3.1",
+    "jest": "^26.6.3",
+    "mini-css-extract-plugin": "^1.4.0",
+    "rimraf": "^3.0.2",
+    "sass": "^1.32.8",
+    "sass-loader": "^11.0.1",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.28.0",
+    "webpack-cli": "^4.6.0",
+    "webpack-dev-server": "^3.11.2",
+    "workbox-precaching": "^6.1.2",
+    "workbox-routing": "^6.1.2",
+    "workbox-webpack-plugin": "^6.1.2"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "bracketSpacing": false,
+    "arrowParens": "avoid"
+  },
+  "eslintConfig": {
+    "parser": "@babel/eslint-parser",
+    "extends": [
+      "airbnb",
+      "prettier"
+    ],
+    "settings": {
+      "import/extensions": [
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".sass",
+        ".scss"
+      ]
+    },
+    "rules": {
+      "react/prop-types": "warn",
+      "react/react-in-jsx-scope": "off",
+      "react/jsx-filename-extension": "off"
+    }
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/react",
+        {
+          "runtime": "automatic",
+          "importSource": "preact"
+        }
+      ]
+    ],
+    "plugins": [
+      "babel-plugin-livescript"
+    ],
+    "env": {
+      "production": {
+        "plugins": [
+          [
+            "@babel/plugin-transform-runtime",
+            {
+              "regenerator": false
+            }
+          ]
+        ]
+      },
+      "test": {
+        "plugins": [
+          "@babel/proposal-optional-chaining",
+          "@babel/proposal-nullish-coalescing-operator",
+          "@babel/transform-modules-commonjs"
+        ]
+      }
+    }
+  },
+  "jest": {
+    "coveragePathIgnorePatterns": [
+      ".*"
+    ],
+    "moduleFileExtensions": [
+      "ls",
+      "js",
+      "jsx",
+      "json",
+      "ts",
+      "tsx"
+    ],
+    "resolver": "jest-pnp-resolver",
+    "testMatch": [
+      "**/*.test.(ls|js|jsx|ts|tsx)"
+    ],
+    "transform": {
+      "\\.(ls|js|jsx|ts|tsx)$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/",
+      ".pnp"
+    ]
+  }
+}
