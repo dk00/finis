@@ -1,7 +1,7 @@
 {
-  "name": "template",
-  "version": "0.2.0",
-  "description": "Lean web app template, offline first, with Preact and LiveScript",
+  "name": "taiwan-invoice-matcher",
+  "version": "0.1.0",
+  "description": "Read invoice with phone camera, match winning number & more",
   "scripts": {
     "start": "webpack serve",
     "build": "rimraf build && cp -r public build && webpack --mode production",
@@ -11,10 +11,10 @@
     "test:watch": "jest --clearCache; jest --watch",
     "deploy": "yarn test && firebase deploy"
   },
-  "repository": "dk00/template",
+  "repository": "dk00/finis",
   "license": "Unlicense",
-  "bugs": "https://github.com/dk00/template/issues",
-  "homepage": "https://github.com/dk00/template#readme",
+  "bugs": "https://github.com/dk00/finis/issues",
+  "homepage": "https://github.com/dk00/finis#readme",
   "installConfig": {
     "pnp": true
   },
@@ -24,6 +24,9 @@
     "preact": "^10.5.13",
     "swr": "^0.5.5",
     "taiwan-invoice": "^0.0.1",
+    "workbox-precaching": "^6.1.2",
+    "workbox-routing": "^6.1.2",
+    "workbox-strategies": "^6.1.2",
     "wouter-preact": "^2.7.4"
   },
   "devDependencies": {
@@ -52,8 +55,6 @@
     "webpack": "^5.28.0",
     "webpack-cli": "^4.6.0",
     "webpack-dev-server": "^3.11.2",
-    "workbox-precaching": "^6.1.2",
-    "workbox-routing": "^6.1.2",
     "workbox-webpack-plugin": "^6.1.2"
   },
   "prettier": {
@@ -79,6 +80,7 @@
       ]
     },
     "rules": {
+      "no-nested-ternary": "off",
       "react/prop-types": "warn",
       "react/react-in-jsx-scope": "off",
       "react/jsx-filename-extension": "off"

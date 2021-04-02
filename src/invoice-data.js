@@ -2,7 +2,7 @@ import useSWR, {mutate} from 'swr'
 import {getDB} from './db'
 
 const ref = {
-  temporaryItems: []
+  temporaryItems: [],
 }
 
 const useSavedInvoices = ({sort = 'date'}) =>
@@ -13,7 +13,7 @@ const useSavedInvoices = ({sort = 'date'}) =>
     return result
   })
 
-const useRecentNumbers = () => {
+const useRecentInvoices = () => {
   const {data: saved = []} = useSavedInvoices({sort: 'created'})
   const {data: temporary = []} = useSWR('temporary-items', () =>
     Promise.resolve(ref.temporaryItems)
@@ -21,7 +21,6 @@ const useRecentNumbers = () => {
   return []
     .concat(saved, temporary)
     .sort((a, b) => (a.created < b.created ? 1 : -1))
-    .map(item => item.serial)
 }
 
 const saveInvoice = async data => {
@@ -33,12 +32,22 @@ const saveInvoice = async data => {
   mutate(['invoices', 'created'])
 }
 
-const saveTemporary = number => {
-  ref.temporaryItems = [{
-    serial: number,
-    created: new Date().toJSON(),
-  }].concat(ref.temporaryItems)
+const saveTemporary = invoice => {
+  ref.temporaryItems = [{...invoice, created: new Date().toJSON()}].concat(
+    ref.temporaryItems
+  )
   mutate('temporary-items')
 }
 
-export {useSavedInvoices, useRecentNumbers, saveInvoice, saveTemporary}
+const useWinningList = () =>
+  useSWR('https://taiwan-receipt-lottery.netlify.app/latest.json', url =>
+    fetch(url).then(res => res.json())
+  ).data
+
+export {
+  useSavedInvoices,
+  useRecentInvoices,
+  saveInvoice,
+  saveTemporary,
+  useWinningList,
+}
