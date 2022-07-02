@@ -48,7 +48,7 @@ const QrCodeReader = ({onData}) => {
     }
   }, [])
 
-  return <video ref={videoRef} autoPlay />
+  return <video ref={videoRef} autoPlay playsInline />
 }
 
 export default QrCodeReader
