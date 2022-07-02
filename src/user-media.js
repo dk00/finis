@@ -14,9 +14,7 @@ const captureImage = video => {
 
 const createCameraStream = async ({video}) => {
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: 'environment',
-    },
+    video: {facingMode: 'environment', focusMode: 'continuous'},
   })
   video.srcObject = stream
 
