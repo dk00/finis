@@ -1,0 +1,12 @@
+{
+  "name": "taiwan-receipt-lottery",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "deploy": "node get-list > public/latest.json; netlify deploy -d public --prod"
+  },
+  "dependencies": {
+    "node-fetch": "2"
+  }
+}
