@@ -32,7 +32,7 @@ const startReadLoop = ({video, cameraIndex, onData}) => {
   const readNext = async () => {
     if (video.videoHeight > 0) {
       // TODO clip left
-      const result = await detector.detect(video)
+      const result = await detector.detect(video).catch(e => [])
       if (result.length > 0 && lastResult !== result[0].rawValue) {
         lastResult = result[0].rawValue
         onData(result[0])

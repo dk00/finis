@@ -20,7 +20,7 @@ const useRecentInvoices = () => {
   )
   return []
     .concat(saved, temporary)
-    .sort((a, b) => (a.created < b.created ? 1 : -1))
+    .sort((a, b) => (a.created > b.created ? -1 : 1))
 }
 
 const saveInvoice = async data => {

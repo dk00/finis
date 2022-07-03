@@ -3,110 +3,127 @@ import {Switch, Route} from 'wouter-preact'
 import {parseCode} from 'taiwan-invoice'
 
 import '../style'
-import {
-  useRecentInvoices,
-  useWinningList,
-  saveInvoice,
-  saveTemporary,
-} from './invoice-data'
+import {useRecentInvoices, useWinningList, saveInvoice} from './invoice-data'
 import QrCodeReader from './qr-code-reader'
 import {NavLink} from './routing'
-import {getEditionName} from './format'
 import matchNumber from './match-number'
+import KeyIn from './key-in'
+
+const InvoiceItem = ({matched, snap, data = {}}) => (
+  <div className={`invoice-item ${matched.type}`}>
+    {snap ? (
+      <img src={snap} />
+    ) : (
+      <div className="invoice-icon-placeholder"></div>
+    )}
+    <div className="content">{data.serial}</div>
+    <div className="total">${data.total}</div>
+  </div>
+)
+
+const tryParseCode = value => {
+  try {
+    return parseCode(value)
+  } catch (e) {
+    return {}
+  }
+}
+
+const handleCode = ({rawValue, boundingBox}, lotteryList, feedback) => {
+  const invoiceData = tryParseCode(rawValue)
+  if (/[A-Z]{2}\d{8}/.test(invoiceData.serial)) {
+    beep()
+    navigator.vibrate([77])
+    saveInvoice(invoiceData)
+    // TODO check number match & feedback
+    return {...invoiceData, boundingBox}
+  }
+}
 
 const RecentNumberList = () => {
   const invoices = useRecentInvoices()
-  const winningList = useWinningList()
-
-  return (
-    <div className="recent-number-list">
-      {invoices.length <= 0 && 'empty'}
-      {invoices.map(item => {
-        const result = winningList && matchNumber(winningList, item)
-        return (
-          <div key={item.serial} className={result?.type}>
-            {item.serial}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-const InputTail3 = ({onData}) => {
-  const winningList = useWinningList()
-  const [date, setDate] = useState(winningList?.[0].startDate)
-  const [number, setNumber] = useState('')
+  const lotteryList = useWinningList()
+  const [inputState, setInputState] = useState({})
+  const [readerResult, setReaderResult] = useState({})
+  const nextReaderCamera = () =>
+    setInputState(current => ({
+      open: 'reader',
+      cameraIndex: (current.cameraIndex ?? -1) + 1,
+    }))
+  const dismiss = () => {
+    setInputState({open: false, cameraIndex: -1})
+    setReaderResult({})
+  }
   useEffect(() => {
-    if (winningList?.length > 0) {
-      setDate(winningList[0].startDate)
-    }
-  }, [winningList])
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        dismiss()
+      }
+    })
+  }, [])
 
   return (
-    winningList && (
-      <div className="number-input">
-        <div className="select">
-          {winningList?.map(edition => (
-            <button
-              type="button"
-              className={date === edition.startDate && 'selected'}
-              onClick={() => setDate(edition.startDate)}
-            >
-              {getEditionName(edition)}
-            </button>
-          ))}
+    <>
+      {inputState.open === 'reader' && (
+        <div className="code-input reader">
+          <QrCodeReader
+            cameraIndex={inputState.cameraIndex}
+            onData={code => {
+              if (code.rawValue) {
+                const parsed = handleCode(code, lotteryList)
+                if (parsed) {
+                  setReaderResult(parsed)
+                }
+              }
+            }}
+          />
         </div>
-        <input
-          // For a numeric keyboard: https://stackoverflow.com/a/31619707/4578017
-          type="tel"
-          pattern="[0-9]*"
-          placeholder=""
-          autoComplete="off"
-          value={number}
-          onInput={event => {
-            const next = event.target.value
-            if (next.length === 3) {
-              onData({
-                date,
-                serial: next.slice(0, 3),
-              })
-            }
-            if (next.length <= 3) {
-              setNumber(next)
-            } else {
-              setNumber(next.slice(3))
-            }
-          }}
+      )}
+      {inputState.open === 'reader' && readerResult.serial && (
+        <InvoiceItem
+          matched={matchNumber(lotteryList, readerResult)}
+          data={readerResult}
         />
+      )}
+      <div className="recent-number-list">
+        {invoices.length <= 0 && 'empty'}
+        {invoices
+          .filter(item => item.serial !== readerResult.serial)
+          .map(item => (
+            <InvoiceItem
+              key={item.serial}
+              matched={matchNumber(lotteryList, item)}
+              data={item}
+            />
+          ))}
+        <div className="float-actions">
+          {inputState.open && (
+            <button type="button" onClick={dismiss}>
+              ⬅️
+            </button>
+          )}
+          <button type="button" onClick={nextReaderCamera}>
+            📷
+          </button>
+        </div>
       </div>
-    )
+    </>
   )
 }
 
 const App = () => (
   <div className="main">
     <Switch>
-      <Route path="/saved">Coming soon</Route>
-      <Route path="/num-input">
-        <InputTail3 onData={saveTemporary} />
-        <RecentNumberList />
+      <Route path="/key-in">
+        <KeyIn />
       </Route>
       <Route>
-        <div className="reader">
-          <QrCodeReader
-            onData={data => {
-              saveInvoice(parseCode(data))
-            }}
-          />
-        </div>
         <RecentNumberList />
       </Route>
     </Switch>
     <nav>
-      <NavLink href="/">📷</NavLink>
-      <NavLink href="/num-input">🔢</NavLink>
-      <NavLink href="/saved">💾</NavLink>
+      <NavLink href="/">📜</NavLink>
+      <NavLink href="/key-in">⌨️</NavLink>
     </nav>
   </div>
 )

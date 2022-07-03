@@ -5,20 +5,32 @@ html, body, #root
   height: 100%
 
 .main
+  display: flex
+  flex-direction: column
   height: 100%
+  padding-bottom: 3rem
 
   input
     width: 15rem
     font-size: 2rem
     text-align: center
 
-.reader
-  height: 16rem
-  overflow: hidden
-  video
-    width: 100%
+.code-input
+  flex: 0 16rem
+  min-height: 0
+  text-align: center
 
-.number-input
+.reader
+  overflow: hidden
+  display: flex
+  align-items: center
+  justify-content: center
+
+  video
+    flex: 100%
+    object-fit: cover
+
+.key-in
   margin-bottom: 1rem
   text-align: center
   .select
@@ -32,28 +44,59 @@ html, body, #root
 
 @keyframes blinking
   20%
-    color: #fff
+    color: lighten(gold, 15%)
   50%
-    color: #555
+    color: darken(gold, 20%)
   80%
-    color: #fff
+    color: lighten(gold, 15%)
 
-.recent-number-list
-  display: flex
-  flex-wrap: wrap
-  > div
-    margin: 0.2rem
-
+.main
   .maybe-grand
     color: hotpink
 
   .winning, .grand
     font-weight: bolder
-    color: #fff
-    animation: blinking 1.5s ease-out 0s infinite
+    color: lighten(gold, 15%)
+    background: darken(hotpink, 40%)
+    animation: blinking 2.5s ease-out 0s infinite
+
+.recent-number-list
+  position: relative
+  flex: 1
+  flex-wrap: wrap
+  overflow-y: auto
 
   .expired
     color: #777
+  .float-actions
+    position: fixed
+    bottom: 4rem
+    right: 1.5rem
+    button
+      margin-left: 0.5rem
+      padding: .5rem
+      font-size: 180%
+      border: none
+      border-radius: 15rem
+
+.invoice-item
+  display: flex
+  align-items: center
+  padding: 0.5rem 0.5rem
+  color: #aaa
+  font-family: 'Courier New', Courier, monospace
+
+  img, .invoice-icon-placeholder
+    height: 2rem
+    flex: 0 2rem
+  .invoice-icon-placeholder
+    background: #777
+    border-radius: 2rem
+  .content
+    flex: 1
+  > div:not(:first-child)
+    margin-left: 0.5rem
+  
 
 nav
   position: fixed
