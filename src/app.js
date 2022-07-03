@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'preact/hooks'
+import {useState, useEffect, useRef} from 'preact/hooks'
 import {Switch, Route} from 'wouter-preact'
 import {parseCode} from 'taiwan-invoice'
 
@@ -8,10 +8,14 @@ import QrCodeReader from './qr-code-reader'
 import {NavLink} from './routing'
 import matchNumber from './match-number'
 import KeyIn from './key-in'
+import {beep} from './sound'
+import {anyaWakuWaku, anyaExciting} from './anya'
 
 const InvoiceItem = ({matched, snap, data = {}}) => (
   <div className={`invoice-item ${matched.type}`}>
-    {snap ? (
+    {/win|grand/.test(matched.type) ? (
+      <img src={anyaExciting} />
+    ) : snap ? (
       <img src={snap} />
     ) : (
       <div className="invoice-icon-placeholder"></div>
@@ -32,8 +36,12 @@ const tryParseCode = value => {
 const handleCode = ({rawValue, boundingBox}, lotteryList, feedback) => {
   const invoiceData = tryParseCode(rawValue)
   if (/[A-Z]{2}\d{8}/.test(invoiceData.serial)) {
-    beep()
-    navigator.vibrate([77])
+    if (/win|grand/.test(matchNumber(lotteryList, invoiceData)?.type)) {
+      feedback()
+    } else {
+      beep()
+      navigator.vibrate([77])
+    }
     saveInvoice(invoiceData)
     // TODO check number match & feedback
     return {...invoiceData, boundingBox}
@@ -45,6 +53,7 @@ const RecentNumberList = () => {
   const lotteryList = useWinningList()
   const [inputState, setInputState] = useState({})
   const [readerResult, setReaderResult] = useState({})
+  const effectContainer = useRef()
   const nextReaderCamera = () =>
     setInputState(current => ({
       open: 'reader',
@@ -61,6 +70,28 @@ const RecentNumberList = () => {
       }
     })
   }, [])
+  const winAnimation = () => {
+    anyaWakuWaku()
+    navigator.vibrate([77, 77, 77, 77, 77])
+    effectContainer.current.animate(
+      [
+        {offset: 0, left: 0, background: 'rgba(255, 255, 255, 0)'},
+        {offset: 0.2, left: 0, background: 'rgba(255, 255, 255, 0.5)'},
+        {offset: 0.8, left: 0, background: 'rgba(255, 255, 255, 0.5)'},
+        {offset: 1, left: 0, background: 'rgba(255, 255, 255, 0)'},
+      ],
+      {duration: 2500, iterations: 1, easing: 'ease-out'}
+    )
+    effectContainer.current.querySelector('img').animate(
+      [
+        {offset: 0, transform: 'translateX(100%)'},
+        {offset: 0.2, transform: 'translateX(0)'},
+        {offset: 0.8, transform: 'translateX(0)'},
+        {offset: 1, transform: 'translateX(-100%)'},
+      ],
+      {duration: 2500, iterations: 1, easing: 'ease-out'}
+    )
+  }
 
   return (
     <>
@@ -70,7 +101,7 @@ const RecentNumberList = () => {
             cameraIndex={inputState.cameraIndex}
             onData={code => {
               if (code.rawValue) {
-                const parsed = handleCode(code, lotteryList)
+                const parsed = handleCode(code, lotteryList, winAnimation)
                 if (parsed) {
                   setReaderResult(parsed)
                 }
@@ -106,6 +137,9 @@ const RecentNumberList = () => {
             📷
           </button>
         </div>
+      </div>
+      <div className="win-effect" ref={effectContainer}>
+        <img src={anyaExciting} />
       </div>
     </>
   )
