@@ -22,10 +22,7 @@ const nextCamera = async (video, {index} = {}) => {
   const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
     device => device.deviceId && device.kind === 'videoinput'
   )
-  if (video.srcObject && devices.length === 1) {
-    return
-  }
-  if (index >= 0) {
+  if (index > 0) {
     ref.deviceId = devices[index % devices.length]?.deviceId
   }
   await ref.request

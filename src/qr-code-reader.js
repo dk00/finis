@@ -11,18 +11,32 @@ const messageSW = (sw, data) =>
     }
   })
 
+const WorkerBarcoderDetector = function () {
+  this.detect = async video => {
+    const {width, height, getImageData} = captureImage(video)
+    const {data, location} = await messageSW(
+      navigator.serviceWorker.controller,
+      {
+        type: 'read-qr-code',
+        payload: getImageData(0, 0, width / 2, height),
+      }
+    )
+    return {rawValue: data, location}
+  }
+}
+
 const startReadLoop = ({video, cameraIndex, onData}) => {
   const cameraOp = nextCamera(video, {index: cameraIndex})
-  let nextTimerId
+  let nextTimerId, lastResult
+  const detector = new BarcodeDetector({formats: ['qr_code']})
   const readNext = async () => {
     if (video.videoHeight > 0) {
       // TODO clip left
-      const {width, height, getImageData} = captureImage(video)
-      const result = await messageSW(navigator.serviceWorker.controller, {
-        type: 'read-qr-code',
-        payload: getImageData(0, 0, width / 2, height),
-      })
-      onData(result)
+      const result = await detector.detect(video)
+      if (result.length > 0 && lastResult !== result[0].rawValue) {
+        lastResult = result[0].rawValue
+        onData(result[0])
+      }
     }
     nextTimerId = setTimeout(readNext, 50)
   }
