@@ -12,15 +12,36 @@ const captureImage = video => {
   }
 }
 
-const createCameraStream = async ({video}) => {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: {facingMode: 'environment', focusMode: 'continuous'},
-  })
-  video.srcObject = stream
-
-  return {
-    stop: () => stream.getTracks().forEach(track => track.stop()),
-  }
+const ref = {
+  deviceId: localStorage.getItem('last-camera-id')
 }
 
-export {createCameraStream, captureImage}
+const getDeviceId = stream => stream.getTracks()[0].getSettings().deviceId
+
+const nextCamera = async (video, {index} = {}) => {
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
+    device => device.deviceId && device.kind === 'videoinput'
+  )
+  if (video.srcObject && devices.length === 1) {
+    return
+  }
+  if (index >= 0) {
+    ref.deviceId = devices[index % devices.length]?.deviceId
+  }
+  await ref.request
+  if (video.srcObject) {
+    const tracks = video.srcObject?.getVideoTracks?.() || []
+    tracks.forEach(track => track.stop())
+  }
+  ref.request = navigator.mediaDevices.getUserMedia({
+    video: ref.deviceId
+      ? {focusMode: 'continuous', deviceId: ref.deviceId}
+      : {focusMode: 'continuous', facingMode: 'environment'},
+  })
+  video.srcObject = await ref.request
+  console.log('using camera', getDeviceId(video.srcObject))
+  localStorage.setItem('last-camera-id', getDeviceId(video.srcObject))
+  return () => video.srcObject.getTracks().forEach(track => track.stop())
+}
+
+export {nextCamera, captureImage}

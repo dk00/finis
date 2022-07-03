@@ -1,6 +1,6 @@
 import {useRef, useEffect} from 'preact/hooks'
 
-import {createCameraStream, captureImage} from './user-media'
+import {captureImage, nextCamera} from './user-media'
 
 const messageSW = (sw, data) =>
   new Promise(resolve => {
@@ -11,42 +11,40 @@ const messageSW = (sw, data) =>
     }
   })
 
-const startReaderLoop = ({video, onData}) => {
-  let state = 'active'
+const startReadLoop = ({video, cameraIndex, onData}) => {
+  const cameraOp = nextCamera(video, {index: cameraIndex})
+  let nextTimerId
   const readNext = async () => {
-    const {width, height, getImageData} = captureImage(video)
-    const result = await messageSW(navigator.serviceWorker.controller, {
-      type: 'read-qr-code',
-      payload: getImageData(0, 0, width / 2, height),
-    })
-    onData(result)
-    setTimeout(() => {
-      if (state === 'active') {
-        readNext()
-      }
-    }, 50)
+    if (video.videoHeight > 0) {
+      // TODO clip left
+      const {width, height, getImageData} = captureImage(video)
+      const result = await messageSW(navigator.serviceWorker.controller, {
+        type: 'read-qr-code',
+        payload: getImageData(0, 0, width / 2, height),
+      })
+      onData(result)
+    }
+    nextTimerId = setTimeout(readNext, 50)
   }
   readNext()
 
-  return () => {state = 'stopped'}
+  return () => {
+    cameraOp.then(stop => stop())
+    clearTimeout(nextTimerId)
+  }
 }
 
-const QrCodeReader = ({onData}) => {
+const QrCodeReader = ({cameraIndex, onData}) => {
   const videoRef = useRef()
-  useEffect(() => {
-    const loadStream = createCameraStream({
-      video: videoRef.current,
-    })
-    const stopLoop = startReaderLoop({
-      video: videoRef.current,
-      onData,
-    })
-
-    return () => {
-      stopLoop()
-      loadStream.then(stream => stream.stop())
-    }
-  }, [])
+  useEffect(
+    () =>
+      startReadLoop({
+        video: videoRef.current,
+        cameraIndex,
+        onData,
+      }),
+    [cameraIndex]
+  )
 
   return <video ref={videoRef} autoPlay playsInline />
 }
