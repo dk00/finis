@@ -14,7 +14,7 @@ const useSavedInvoices = ({sort = 'date'}) =>
   })
 
 const useRecentInvoices = () => {
-  const {data: saved = []} = useSavedInvoices({sort: 'created'})
+  const {data: saved = []} = useSavedInvoices({sort: 'date'})
   const {data: temporary = []} = useSWR('temporary-items', () =>
     Promise.resolve(ref.temporaryItems)
   )
